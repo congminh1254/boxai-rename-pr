@@ -1,0 +1,57 @@
+name: 'Box AI PR Title'
+description: 'Generate a PR title using Box AI based on the PR context (commits, files, diff)'
+branding:
+  icon: 'edit-3'
+  color: 'blue'
+
+inputs:
+  box-jwt-config:
+    description: 'Box JWT config — accepts base64-encoded or plain JSON string'
+    required: true
+  box-folder-id:
+    description: 'Box folder ID for temporary file uploads (default: root folder)'
+    required: false
+    default: '0'
+  repo:
+    description: 'Repository in owner/repo format (default: current repository)'
+    required: false
+    default: ${{ github.repository }}
+  pr-number:
+    description: 'Pull request number (default: from event context)'
+    required: false
+    default: ${{ github.event.pull_request.number }}
+  remove-label:
+    description: 'Label to remove from the PR after renaming'
+    required: false
+    default: ''
+  github-token:
+    description: 'GitHub token for API access'
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci
+
+    - name: Generate and apply PR title
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        BOX_JWT_CONFIG_JSON: ${{ inputs.box-jwt-config }}
+        BOX_FOLDER_ID: ${{ inputs.box-folder-id }}
+      run: |
+        ARGS="${{ inputs.repo }} ${{ inputs.pr-number }} --apply"
+        if [ -n "${{ inputs.remove-label }}" ]; then
+          ARGS="$ARGS --remove-label ${{ inputs.remove-label }}"
+        fi
+        node rename-pr.js $ARGS

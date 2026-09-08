@@ -1,0 +1,12 @@
+{
+  "name": "boxai-rename-pr",
+  "version": "1.0.0",
+  "description": "GitHub Action to generate PR titles using Box AI",
+  "private": true,
+  "scripts": {
+    "test": "node rename-pr.js --help"
+  },
+  "dependencies": {
+    "box-node-sdk": "^10.14.0"
+  }
+}
